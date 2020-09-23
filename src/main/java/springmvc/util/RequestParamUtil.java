@@ -1,0 +1,89 @@
+package springmvc.util;
+
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.QueryStringDecoder;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * HTTP请求参数解析器
+ */
+public class RequestParamUtil {
+
+    /**
+     * 获取请求参数 Map
+     */
+    public static Map<String, Object> getParamMap(FullHttpRequest request){
+        Map<String, Object> paramMap = new HashMap<String, Object>();
+        HttpMethod method = request.method();
+        if(method.equals(HttpMethod.GET)){
+            paramMap = getGetParamMap(request);
+        }else if(method.equals(HttpMethod.POST)){
+            paramMap = getPostParamMap(request);
+        }
+
+        return paramMap;
+    }
+
+    /**
+     * 解析Get请求的参数
+     * @param fullRequest
+     * @return
+     */
+    public static Map<String, Object> getGetParamMap(FullHttpRequest fullRequest) {
+        Map<String, Object> paramMap = new HashMap<>();
+        String uri = fullRequest.uri();
+        QueryStringDecoder queryDecoder = new QueryStringDecoder(uri, Charset.forName("UTF-8"));
+        for (Map.Entry<String, List<String>> item : queryDecoder.parameters().entrySet()) {
+            if (item.getValue().get(0) != null) {
+                paramMap.put(item.getKey(), item.getValue().get(0));
+            }
+        }
+        return paramMap;
+    }
+
+    /**
+     * 解析POST请求的参数
+     * @param fullRequest
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> getPostParamMap(FullHttpRequest fullRequest) {
+        Map<String, List<String>> paramMap = new HashMap<String, List<String>>();
+        HttpHeaders headers = fullRequest.headers();
+        String contentType = getContentType(headers);
+
+        Map<String, Object> param = new HashMap<>();
+        if(contentType.equals("application/json")) {
+            String jsonStr = fullRequest.content().toString(Charset.forName("UTF-8"));
+            JSONObject obj = JSON.parseObject(jsonStr);
+            for (Map.Entry<String, Object> item : obj.entrySet()) {
+                String key = item.getKey();
+                Object value = item.getValue();
+                param.put(key, value);
+            }
+        }
+        return param;
+    }
+
+
+    private static String getContentType(HttpHeaders headers){
+        String contentType = headers.get("Content-Type");
+        if (contentType != null && !contentType.equals("")) {
+            String[] list = contentType.split(";");
+            return list[0];
+        }
+        return "";
+    }
+
+}
+
