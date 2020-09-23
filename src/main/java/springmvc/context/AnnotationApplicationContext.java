@@ -237,8 +237,14 @@ public class AnnotationApplicationContext extends ApplicationContext {
             }
         }
     }
-    private String lowerClass(String simpleName) {
-        char[] chars = simpleName.toCharArray();
+
+    /**
+     * 名称首字母转小写
+     * @param name
+     * @return
+     */
+    private String lowerClass(String name) {
+        char[] chars = name.toCharArray();
         chars[0] += 32;
         String res = String.valueOf(chars);
         return res;

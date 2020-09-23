@@ -58,11 +58,11 @@ public class RequestParamUtil {
      */
     @SuppressWarnings("unchecked")
     public static Map<String, Object> getPostParamMap(FullHttpRequest fullRequest) {
-        Map<String, List<String>> paramMap = new HashMap<String, List<String>>();
         HttpHeaders headers = fullRequest.headers();
         String contentType = getContentType(headers);
 
         Map<String, Object> param = new HashMap<>();
+        // TODO 目前这里仅支持application/json格式的body参数，其他格式后续添加
         if(contentType.equals("application/json")) {
             String jsonStr = fullRequest.content().toString(Charset.forName("UTF-8"));
             JSONObject obj = JSON.parseObject(jsonStr);
@@ -76,6 +76,11 @@ public class RequestParamUtil {
     }
 
 
+    /**
+     * 获取参数类型
+     * @param headers
+     * @return
+     */
     private static String getContentType(HttpHeaders headers){
         String contentType = headers.get("Content-Type");
         if (contentType != null && !contentType.equals("")) {

@@ -14,8 +14,8 @@ public class XMLUtil {
         try{
             Document document = reader.read(ins);
             Element root = document.getRootElement();
-            Element ele = root.element("package-scan");
-            String res = ele.attributeValue("component-scan");
+            Element ele = root.element("package");
+            String res = ele.attributeValue("package-scan");
             return res;
         }catch(Exception e){
             e.printStackTrace();

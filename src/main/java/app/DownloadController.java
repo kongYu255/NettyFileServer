@@ -35,8 +35,8 @@ public class DownloadController {
             fileInputStream.close();
         } catch (Exception e) {
             e.printStackTrace();
-            return HttpUtil.constuct("下载异常", "text/plain", HttpResponseStatus.INTERNAL_SERVER_ERROR);
+            return HttpUtil.response("下载异常", "text/plain", HttpResponseStatus.INTERNAL_SERVER_ERROR);
         }
-        return HttpUtil.constuct(new String(bytes), "multipart/form-data", HttpResponseStatus.OK);
+        return HttpUtil.response(new String(bytes), "multipart/form-data", HttpResponseStatus.OK);
     }
 }

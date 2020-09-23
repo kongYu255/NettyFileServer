@@ -19,41 +19,42 @@ public class HttpUtil {
 	 * 输出纯Json字符串
 	 */
 	public static FullHttpResponse constructJSON(String json){
-		return constuct(json, "text/x-json;charset=UTF-8",
+		return response(json, "text/x-json;charset=UTF-8",
 				HttpResponseStatus.OK);
 	}
 	
 	/**
 	 * 输出纯字符串
 	 */
-	public static FullHttpResponse constructText(String text) {
-		return constuct(text, "text/plain;charset=UTF-8",
-				HttpResponseStatus.OK);
-	}
-	
-	/**
-	 * 输出纯XML
-	 */
-	public static FullHttpResponse constructXML(String xml) {
-		return constuct(xml, "text/xml;charset=UTF-8",
+	public static FullHttpResponse responseString(String text) {
+		return response(text, "text/plain;charset=UTF-8",
 				HttpResponseStatus.OK);
 	}
 	
 	/**
 	 * 输出纯HTML
 	 */
-	public static FullHttpResponse constructHTML(String html) {
-		return constuct(html, "text/html;charset=UTF-8",
+	public static FullHttpResponse responseHtml(String html) {
+		return response(html, "text/html;charset=UTF-8",
 				HttpResponseStatus.OK);
 	}
-	
-	public static FullHttpResponse getErroResponse(){
-		return constuct("Server error", "text/plain;charset=UTF-8"
-		,HttpResponseStatus.INTERNAL_SERVER_ERROR);
+
+	/**
+	 * 500错误
+	 * @return
+	 */
+	public static FullHttpResponse getErrorResponse(){
+		return response("Server error", "text/plain;charset=UTF-8",
+				HttpResponseStatus.INTERNAL_SERVER_ERROR);
 	}
-	
+
+	/**
+	 * 请求NOT_FOUND
+	 * @return
+	 */
 	public static FullHttpResponse getNotFoundResponse(){
-		return constuct("Request not found", "text/plain;charset=UTF-8",HttpResponseStatus.NOT_FOUND);
+		return response("Request not found", "text/plain;charset=UTF-8",
+				HttpResponseStatus.NOT_FOUND);
 	}
 	
 	/**
@@ -61,7 +62,7 @@ public class HttpUtil {
 	 * @param text
 	 * @param contentType
 	 */
-	public static FullHttpResponse constuct(String text, String contentType,HttpResponseStatus status){
+	public static FullHttpResponse response(String text, String contentType,HttpResponseStatus status){
 		if(text == null){
 			text = "";
 		}

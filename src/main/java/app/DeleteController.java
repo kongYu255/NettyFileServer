@@ -16,6 +16,12 @@ import java.util.*;
 @YRequestMapping("/delete")
 public class DeleteController {
 
+    /**
+     * TODO 这里关于文件地址的参数有点乱，后续可以整理一下
+     * @param request
+     * @param map
+     * @return
+     */
     @YRequestMapping("/file")
     public FullHttpResponse delete(FullHttpRequest request, @YRequestBody Map<String, Object> map) {
         System.out.println(map);
@@ -28,13 +34,13 @@ public class DeleteController {
         }
         File file = new File(filePath);
         if (!file.exists()) {
-            return HttpUtil.constructText("该文件不存在");
+            return HttpUtil.responseString("该文件不存在");
         }
         boolean delete = file.delete();
         if (delete) {
-            return HttpUtil.constructText("删除成功!");
+            return HttpUtil.responseString("删除成功!");
         } else {
-            return HttpUtil.constructText("删除失败!");
+            return HttpUtil.responseString("删除失败!");
         }
     }
 }

@@ -56,7 +56,7 @@ public class UploadController {
             }
         }
         System.out.println("上传成功");
-        return HttpUtil.constructText("上传成功!\r\n" + "文件路径：" + DEFAULT_ADDRESS + request.headers().get("filePath") + "/" + fileName);
+        return HttpUtil.responseString("上传成功!\r\n" + "文件路径：" + DEFAULT_ADDRESS + request.headers().get("filePath") + "/" + fileName);
     }
 
 
