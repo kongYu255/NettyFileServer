@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.util.CharsetUtil;
 import springmvc.annonation.*;
 import springmvc.util.HttpUtil;
@@ -23,9 +25,9 @@ public class DeleteController {
      * @return
      */
     @YRequestMapping("/file")
-    public FullHttpResponse delete(FullHttpRequest request, @YRequestBody Map<String, Object> map) {
+    public FullHttpResponse delete(HttpContent httpContent, @YRequestBody Map<String, Object> map) {
         System.out.println(map);
-        ByteBuf content = request.content();
+        ByteBuf content = httpContent.content();
         String json = content.toString(CharsetUtil.UTF_8);
         JSONObject jsonObject = JSONObject.parseObject(json);
         String filePath = "";

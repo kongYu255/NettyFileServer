@@ -20,9 +20,9 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         ChannelPipeline pipeline = socketChannel.pipeline();
         pipeline.addLast("httpServerCodec", new HttpServerCodec());
-        pipeline.addLast(new HttpObjectAggregator(1024*1024*1024));
-//        pipeline.addLast(new HttpContentCompressor());
-//        pipeline.addLast(new ChunkedWriteHandler());
+//        pipeline.addLast(new HttpObjectAggregator(1024*1024*1024));
+        pipeline.addLast(new HttpContentCompressor());
+        pipeline.addLast(new ChunkedWriteHandler());
         pipeline.addLast("handler", new DispatcherHandler(applicationContext));
     }
 }

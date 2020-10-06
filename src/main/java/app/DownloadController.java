@@ -2,6 +2,7 @@ package app;
 
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import springmvc.annonation.RequestMethod;
 import springmvc.annonation.YAutowired;
@@ -17,7 +18,7 @@ import java.io.FileInputStream;
 public class DownloadController {
 
     @YRequestMapping(value = "/file", method = RequestMethod.GET)
-    public FullHttpResponse download(FullHttpRequest request) {
+    public FullHttpResponse download(HttpRequest request) {
         String uri = request.uri();
         StringBuffer sb = new StringBuffer();
         String[] uris = uri.split("/");

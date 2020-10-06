@@ -27,52 +27,45 @@ public class UploadController {
     private HttpPostRequestDecoder decoder;
 
     @YRequestMapping("/file")
-    public FullHttpResponse upload(FullHttpRequest request) throws Exception {
+    public FullHttpResponse upload(HttpRequest request, HttpContent content) throws Exception {
         System.out.println("开始上传");
-        String fileName = "";
         String filePath = "";
+        String result = "";
         if (decoder == null) {
             decoder = new HttpPostRequestDecoder(factory, request);
         }
         if (request.headers().get("filePath") != null) {
-            filePath = DEFAULT_DIR + File.separatorChar + request.headers().get("filePath");
+            filePath = DEFAULT_DIR + request.headers().get("filePath");
+            filePath = filePath.replace('/', File.separatorChar);
             File file = new File(filePath);
             if (!file.exists()) {
                 file.mkdirs();
             }
         }
-        List<InterfaceHttpData> bodyHttpDatas = decoder.getBodyHttpDatas();
-        if (bodyHttpDatas != null && bodyHttpDatas.size() != 0) {
-            for (InterfaceHttpData data : bodyHttpDatas) {
+        if(decoder != null && content != null) {
+            decoder.offer(content);
+            result = readFileIntoDisk(filePath);
+        }
+        System.out.println("该部分上传成功");
+        return HttpUtil.responseString("上传成功！\r\n" + "文件路径:" + DEFAULT_ADDRESS + "/" + request.headers().get("filePath") + result);
+    }
+
+    private String readFileIntoDisk(String filePath) throws IOException {
+        String file = "";
+        while (decoder.hasNext()) {
+            InterfaceHttpData data = decoder.next();
+            if (data != null) {
                 if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
                     FileUpload fileUpload = (FileUpload) data;
-                    fileName = fileUpload.getFilename();
                     if (fileUpload.isCompleted()) {
                         fileUpload.isInMemory();
-                        fileUpload.renameTo(new File(filePath + File.separatorChar + fileName));
+                        file = fileUpload.getFilename();
+                        fileUpload.renameTo(new File(filePath + File.separatorChar + fileUpload.getFilename()));
                         decoder.removeHttpDataFromClean(fileUpload);
                     }
                 }
             }
         }
-        System.out.println("上传成功");
-        return HttpUtil.responseString("上传成功!\r\n" + "文件路径：" + DEFAULT_ADDRESS + request.headers().get("filePath") + "/" + fileName);
+        return file;
     }
-
-
-//    private void readFileIntoDisk() throws IOException {
-//        while (decoder.hasNext()) {
-//            InterfaceHttpData data = decoder.next();
-//            if (data != null) {
-//                if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
-//                    FileUpload fileUpload = (FileUpload) data;
-//                    if (fileUpload.isCompleted()) {
-//                        fileUpload.isInMemory();
-//                        fileUpload.renameTo(new File("E:\\" + fileUpload.getFilename()));
-//                        decoder.removeHttpDataFromClean(fileUpload);
-//                    }
-//                }
-//            }
-//        }
-//    }
 }

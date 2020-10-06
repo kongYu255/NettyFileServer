@@ -1,10 +1,8 @@
 package springmvc.netty;
 
 import io.netty.channel.*;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.*;
+import io.netty.util.CharsetUtil;
 import springmvc.annonation.YRequestBody;
 import springmvc.context.AnnotationApplicationContext;
 import springmvc.util.HttpUtil;
@@ -14,7 +12,7 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-public class DispatcherHandler extends SimpleChannelInboundHandler {
+public class DispatcherHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     private static final String CONNECTION_KEEP_ALIVE = "keep-alive";
 
@@ -22,23 +20,30 @@ public class DispatcherHandler extends SimpleChannelInboundHandler {
 
     private AnnotationApplicationContext annotationApplicationContext;
 
-    private FullHttpRequest request;
+    private HttpRequest request;
 
     private FullHttpResponse response;
 
     private Channel channel;
+
+    // 返回给用户的下载路径
+    private String filePathResponseText;
 
     public DispatcherHandler(AnnotationApplicationContext annotationApplicationContext){
         this.annotationApplicationContext = annotationApplicationContext;
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object o) throws Exception {
-        if(o instanceof FullHttpRequest) {
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, HttpObject o) throws Exception {
+        if(o instanceof HttpRequest) {
             channel = channelHandlerContext.channel();
-            request = (FullHttpRequest) o;
-            String uri = request.uri();   //   /paul-mvc/com.paul.controller/method-com.paul.controller
-            if(uri.contains("?")){
+            request = (HttpRequest) o;
+        }
+        // 文件内容处理
+        if(o instanceof HttpContent) {
+            HttpContent content = (HttpContent) o;
+            String uri = request.uri();
+            if(uri.contains("?")) {
                 int index = uri.indexOf("?");
                 uri = uri.substring(0,index);
             }
@@ -57,9 +62,18 @@ public class DispatcherHandler extends SimpleChannelInboundHandler {
             }
             //从容器里拿到controller 实例
             Object instance = annotationApplicationContext.controllerMap.get(uri);
-            Object[] args = handle(request, response, m);
+            Object[] args = handle(request, content, response, m);
             try {
                 response = (FullHttpResponse) m.invoke(instance, args);
+            } catch (Exception e) {
+                e.printStackTrace();
+                response = HttpUtil.getErrorResponse();
+                writeResponse(true);
+            }
+        }
+        // 请求结束后返回结果
+        if(o instanceof LastHttpContent) {
+            try {
                 writeResponse(false);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -69,7 +83,7 @@ public class DispatcherHandler extends SimpleChannelInboundHandler {
         }
     }
 
-    private static Object[] handle(FullHttpRequest req, FullHttpResponse resp, Method method) throws IOException, IllegalAccessException, InstantiationException {
+    private static Object[] handle(HttpRequest request, HttpContent content, FullHttpResponse response, Method method) throws IOException, IllegalAccessException, InstantiationException {
         //拿到当前执行的方法的参数
         Class<?>[] paramClazzs = method.getParameterTypes();
         Object[] args = new Object[paramClazzs.length];
@@ -79,19 +93,22 @@ public class DispatcherHandler extends SimpleChannelInboundHandler {
         //获取参数注解的索引
         int index = 0;
         for(Class<?> paramClazz:paramClazzs){
-            if(FullHttpRequest.class.isAssignableFrom(paramClazz)){
-                args[args_i++] = req;
+            if(HttpRequest.class.isAssignableFrom(paramClazz)){
+                args[args_i++] = request;
+            }
+            if(HttpContent.class.isAssignableFrom(paramClazz)) {
+                args[args_i++] = content;
             }
             if(FullHttpResponse.class.isAssignableFrom(paramClazz)){
-                args[args_i++] = resp;
+                args[args_i++] = response;
             }
             //判断RequestBody的注解，解析POST请求的参数，返回的Map
             //该方法拿到index参数的所有注解
             Annotation[] paramAns = method.getParameterAnnotations()[index];
             if(paramAns.length > 0){
                 for(Annotation paramAn:paramAns){
-                    if(YRequestBody.class.isAssignableFrom(paramAn.getClass()) && req.method() == HttpMethod.POST) {
-                        args[args_i++] = RequestParamUtil.getPostParamMap(req);
+                    if(YRequestBody.class.isAssignableFrom(paramAn.getClass()) && request.method() == HttpMethod.POST) {
+                        args[args_i++] = RequestParamUtil.getPostParamMap(request, content);
                     }
                 }
             }

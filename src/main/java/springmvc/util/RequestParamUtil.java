@@ -3,10 +3,7 @@ package springmvc.util;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.*;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -18,21 +15,6 @@ import java.util.Map;
  * HTTP请求参数解析器
  */
 public class RequestParamUtil {
-
-    /**
-     * 获取请求参数 Map
-     */
-    public static Map<String, Object> getParamMap(FullHttpRequest request){
-        Map<String, Object> paramMap = new HashMap<String, Object>();
-        HttpMethod method = request.method();
-        if(method.equals(HttpMethod.GET)){
-            paramMap = getGetParamMap(request);
-        }else if(method.equals(HttpMethod.POST)){
-            paramMap = getPostParamMap(request);
-        }
-
-        return paramMap;
-    }
 
     /**
      * 解析Get请求的参数
@@ -57,14 +39,14 @@ public class RequestParamUtil {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public static Map<String, Object> getPostParamMap(FullHttpRequest fullRequest) {
+    public static Map<String, Object> getPostParamMap(HttpRequest fullRequest, HttpContent content) {
         HttpHeaders headers = fullRequest.headers();
         String contentType = getContentType(headers);
 
         Map<String, Object> param = new HashMap<>();
         // TODO 目前这里仅支持application/json格式的body参数，其他格式后续添加
         if(contentType.equals("application/json")) {
-            String jsonStr = fullRequest.content().toString(Charset.forName("UTF-8"));
+            String jsonStr = content.content().toString(Charset.forName("UTF-8"));
             JSONObject obj = JSON.parseObject(jsonStr);
             for (Map.Entry<String, Object> item : obj.entrySet()) {
                 String key = item.getKey();
