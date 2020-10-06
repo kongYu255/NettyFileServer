@@ -47,7 +47,7 @@ public class UploadController {
             result = readFileIntoDisk(filePath);
         }
         System.out.println("该部分上传成功");
-        return HttpUtil.responseString("上传成功！\r\n" + "文件路径:" + DEFAULT_ADDRESS + "/" + request.headers().get("filePath") + result);
+        return HttpUtil.responseString("上传成功！\r\n" + "文件路径:" + DEFAULT_ADDRESS + request.headers().get("filePath") + result);
     }
 
     private String readFileIntoDisk(String filePath) throws IOException {
